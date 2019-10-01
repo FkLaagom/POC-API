@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 namespace JWT_Auth_Test
 {
@@ -29,7 +30,7 @@ namespace JWT_Auth_Test
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc(options => options.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
             // configure strongly typed settings objects
             var appSettingsSection = Configuration.GetSection("AppSettings");
@@ -59,13 +60,22 @@ namespace JWT_Auth_Test
             // configure DI for application services
             services.AddScoped<IUserService, UserService>();
 
-            services.AddSwaggerGen(x => x.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "LOS API"}));
+            services.AddSwaggerGen(x => {
+
+                x.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo Api", Version = "v1337" });
+                x.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                { In = ParameterLocation.Header, Description = "Please insert JWT with Bearer into field", Name = "Authorization", Type = SecuritySchemeType.ApiKey });
+                x.AddSecurityRequirement(new OpenApiSecurityRequirement { { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, new string[] { } } });
+
+
+
+            });
             
 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             var swaggerSettings = new SwaggerSettings();
             Configuration.GetSection(nameof(SwaggerSettings)).Bind(swaggerSettings);
