@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace JWT_Auth_Test
+namespace POC_API
 {
     public class AppSettings
 {
